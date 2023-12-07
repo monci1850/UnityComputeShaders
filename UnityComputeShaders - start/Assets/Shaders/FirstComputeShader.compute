@@ -1,0 +1,22 @@
+﻿// Each #kernel tells which function to compile; you can have many kernels
+#pragma kernel CSMain
+
+// Create a RenderTexture with enableRandomWrite flag and set it
+// with cs.SetTexture
+// RW stands for read and write
+// float4 xyzw and rgba
+RWTexture2D<float4> Result;
+
+// these theads run simultaneously
+[numthreads(8,8,1)] // 8x8 thread groups, 1 thread per group, multi-dimensional array. 64 threads total. 8 in x, 8 in y, 1 in z
+
+void CSMain (uint3 id : SV_DispatchThreadID)
+{
+    // TODO: insert actual code here!
+
+    // float4 construtor takes 4 floats
+    //Result[id.xy] = float4(id.x & id.y, (id.x & 15)/15.0, (id.y & 15)/15.0, 0.0); // this is just a Sierpinski pattern
+    
+    // test a simple color
+    Result[id.xy] = float4(1,0,0,0);
+}
