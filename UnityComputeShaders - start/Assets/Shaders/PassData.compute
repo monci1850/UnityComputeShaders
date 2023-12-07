@@ -6,6 +6,8 @@
 RWTexture2D<float4> Result;
 
 int texResolution;
+float4 clearColor; // declare a float4 variable to store the color from the C# script
+float4 circleColor;
 
 /*Returns pseudo random number in range 0 <= x < 1 */
 float random(float value, float seed = 0.546){
@@ -21,7 +23,7 @@ float2 random2(float value){
 }
 
 void plot1( int x, int y, int2 centre){
-    Result[uint2(centre.x + x, centre.y + y)] = float4( 1, 0, 0, 1 );
+    Result[uint2(centre.x + x, centre.y + y)] = circleColor;
 }
 
 void plot8( int x, int y, int2 centre ) {
@@ -54,7 +56,7 @@ void drawCircle( int2 centre, int radius ) {
 void Circles (uint3 id : SV_DispatchThreadID)
 {
 	int2 centre = (texResolution >> 1);
-	int radius = 80;
+	int radius = 90;
 	drawCircle( centre, radius );
 }
 

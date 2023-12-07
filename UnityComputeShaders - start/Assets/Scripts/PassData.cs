@@ -33,6 +33,8 @@ public class PassData : MonoBehaviour
         circlesHandle = shader.FindKernel("Circles");
 
         shader.SetInt( "texResolution", texResolution);
+        shader.SetVector("clearColor", clearColor);  // set means pass data to shader
+        shader.SetVector("circleColor", circleColor);
         shader.SetTexture( circlesHandle, "Result", outputTexture);
 
         rend.material.SetTexture("_MainTex", outputTexture);
