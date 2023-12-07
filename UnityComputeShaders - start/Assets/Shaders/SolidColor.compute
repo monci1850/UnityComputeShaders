@@ -1,13 +1,90 @@
 ﻿// Each #kernel tells which function to compile; you can have many kernels
-#pragma kernel CSMain
+#pragma kernel SolidRed
+#pragma kernel SolidYellow
+#pragma kernel SplitScreen
+#pragma kernel Circle
+#pragma kernel Square
 
 // Create a RenderTexture with enableRandomWrite flag and set it
 // with cs.SetTexture
 RWTexture2D<float4> Result;
+int texResolution;
+
+float inCircle(float2 pt, float radius)
+{
+    return (length(pt) < radius) ? 1.0 : 0.0;
+}
+
+float inSquare(float2 pt, float4 rect)
+{
+    float horz = step(rect.x, pt.x) - step(rect.x + rect.z, pt.x);
+    float vert = step(rect.y, pt.y) - step(rect.y + rect.w, pt.y);
+    return horz * vert;
+}
 
 [numthreads(8,8,1)]
-void CSMain (uint3 id : SV_DispatchThreadID)
+void SolidRed (uint3 id : SV_DispatchThreadID)
 {
      Result[id.xy] = float4(1.0, 0.0, 0.0, 1.0);
 }
 
+
+[numthreads(8, 8, 1)]
+void SolidYellow(uint3 id : SV_DispatchThreadID)
+{
+    Result[id.xy] = float4(1.0, 1.0, 0.0, 1.0);
+}
+
+[numthreads(8,8,1)]
+void SplitScreen(uint3 id : SV_DispatchThreadID)
+{
+    {// Method 1
+        //if (id.x < 128)
+        //{
+        //    Result[id.xy] = float4(1.0, 0.0, 0.0, 1.0);
+        //}
+        //else
+        //{
+        //    Result[id.xy] = float4(1.0, 1.0, 0.0, 1.0);
+        //}
+    }
+    
+    {   // Method 2 using >> and step. 
+        uint halfRes = ((uint) texResolution) >> 1; //256 >> 1 = 128
+        Result[id.xy] = float4(step(halfRes, id.x), step(halfRes, id.y), 0.0, 0.0);
+    }
+    
+}
+
+[numthreads(8,8,1)]
+void Circle(uint3 id : SV_DispatchThreadID)
+{
+    //uint halfRes = ((uint) texResolution) >> 1; //256 >> 1 = 128
+    //float2 center = float2(halfRes, halfRes);
+    //float2 pos = float2(id.x, id.y);
+    //float2 diff = pos - center;
+    //float dist = length(diff);
+    //float radius = 128.0;
+    //float4 color = float4(1.0, 1.0, 0.0, 1.0);
+    //if (dist < radius)
+    //{
+    //    Result[id.xy] = color;
+    //}
+    //else
+    //{
+    //    Result[id.xy] = float4(0.0, 0.0, 0.0, 1.0);
+    //}
+    
+    uint halfRes = ((uint)texResolution) >> 1;
+    float color = inCircle(float2((int2) id.xy - halfRes), (float) (texResolution >> 2));
+    Result[id.xy] = float4(color, color, 0.0, 1.0);
+}
+
+[numthreads(8,8,1)]
+void Square(uint3 id : SV_DispatchThreadID)
+{
+    int halfRes = texResolution >> 1;
+    int quarterRes = texResolution >> 2;
+    float rec = inSquare(float2((int2) id.xy), float4(quarterRes, quarterRes, quarterRes, quarterRes));
+    Result[id.xy] = float4(0, 0, rec, 1.0);
+}
