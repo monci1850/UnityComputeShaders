@@ -1,13 +1,15 @@
 ﻿// Each #kernel tells which function to compile; you can have many kernels
 #pragma kernel Circles
+#pragma kernel Clear
 
 // Create a RenderTexture with enableRandomWrite flag and set it
 // with cs.SetTexture
-RWTexture2D<float4> Result;
+shared RWTexture2D<float4> Result;
 
 int texResolution;
 float4 clearColor; // declare a float4 variable to store the color from the C# script
 float4 circleColor;
+float time;
 
 /*Returns pseudo random number in range 0 <= x < 1 */
 float random(float value, float seed = 0.546){
@@ -52,12 +54,17 @@ void drawCircle( int2 centre, int radius ) {
 	}
 }
 
-[numthreads(1,1,1)]
+[numthreads(32,1,1)] // draw circle only use 1 thread
 void Circles (uint3 id : SV_DispatchThreadID)
 {
-	int2 centre = (texResolution >> 1);
-	int radius = 90;
+	int2 centre = (int2)(random2((float)id.x + time) * (float)texResolution);
+	int radius = (int)(random((float)id.x) * (float)texResolution * 0.05);
 	drawCircle( centre, radius );
 }
 
 
+[numthreads(8,8,1)]
+void Clear (uint3 id : SV_DispatchThreadID)
+{
+	Result[id.xy] = clearColor;
+}
