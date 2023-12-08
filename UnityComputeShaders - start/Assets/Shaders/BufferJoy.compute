@@ -6,10 +6,20 @@
 // with cs.SetTexture
 shared RWTexture2D<float4> Result;
 
+struct circle
+{
+	float2 origin; 
+    float2 velocity; 
+    float radius;
+};
+
+StructuredBuffer<circle> circleBuffer; // StructuredBuffer is a keyword in HLSL
+
 float4 clearColor;
 float4 circleColor;
 int texResolution;
 float time;
+int clearScreen = 0;
 
 /*Returns pseudo random number in range 0 <= x < 1 */
 float random(float value, float seed = 0.546){
@@ -57,10 +67,17 @@ void drawCircle( int2 centre, int radius ) {
 [numthreads(32,1,1)]
 void Circles (uint3 id : SV_DispatchThreadID)
 {
-	int2 centre = (int2)(random2((float)id.x + time) * (float)texResolution);
-	int radius = (int)(random((float)id.x) * 30);
+    int2 centre = (int2) (circleBuffer[id.x].origin + circleBuffer[id.x].velocity * time); // pos + v * t
 	
-	drawCircle( centre, radius );
+	// wrap around
+	while(centre.x>texResolution) centre.x -= texResolution; 
+	while(centre.x<0) centre.x += texResolution;
+	while(centre.y>texResolution) centre.y -= texResolution; 
+	while(centre.y<0) centre.y += texResolution;
+
+	uint radius = (uint) circleBuffer[id.x].radius;
+
+	drawCircle(centre, radius);
 }
 
 [numthreads(8,8,1)]
