@@ -330,9 +330,9 @@ MonoBehaviour:
   mesh: {fileID: 8254687373856176130, guid: 5da1d4e178357a84bacf36c600d6fcf4, type: 3}
   material: {fileID: 2100000, guid: d71ca0721e4ddd64e9f1557cdd99c05f, type: 2}
   shader: {fileID: 7200000, guid: d832db7312476c948ba672b706be79ec, type: 3}
-  density: 0.8
-  scale: 2
-  maxLean: 25
+  density: 1
+  scale: 3
+  maxLean: 10
 --- !u!23 &2071463610
 MeshRenderer:
   m_ObjectHideFlags: 0

@@ -15,7 +15,7 @@
 
         CGPROGRAM
         // Physically based Standard lighting model, and enable shadows on all light types    
-        #pragma surface surf Standard vertex:vert fullforwardshadows
+        #pragma surface surf Standard vertex:vert addshadow fullforwardshadows
         #pragma instancing_options procedural:setup
 
         sampler2D _MainTex;
@@ -61,9 +61,9 @@
             
             #ifdef UNITY_PROCEDURAL_INSTANCING_ENABLED
                 v.vertex.xyz *= _Scale;
-                float4 rotatedVertex = mul(_Matrix, float4(v.vertex.xyz, 1));
+                float4 rotatedVertex = mul(_Matrix, v.vertex);
                 v.vertex.xyz += _Position;
-                v.vertex.xyz = lerp(v.vertex.xyz, rotatedVertex.xyz,v.texcoord.y);
+                v.vertex = lerp(v.vertex, rotatedVertex,v.texcoord.y);
             #endif
         }
 
@@ -72,6 +72,7 @@
             #ifdef UNITY_PROCEDURAL_INSTANCING_ENABLED
                 GrassClump clump = clumpsBuffer[unity_InstanceID];
                 _Position = clump.position;
+                _Matrix = create_matrix(clump.position, clump.lean);
             #endif
         }
 

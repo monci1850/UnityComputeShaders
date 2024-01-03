@@ -71,16 +71,17 @@ public class GrassClump240102 : MonoBehaviour
 
         uint threadGroupSize;  // The size of the group of threads in the compute shader.
         shader.GetKernelThreadGroupSizes(kernelLeanGrass, out threadGroupSize, out _, out _); // GetKernelThreadGroupSizes gets the thread group sizes of a compute shader kernel.
-        groupSize = Mathf.CeilToInt(total / (float)threadGroupSize); // Mathf.CeilToInt returns the smallest integer greater to or equal to f.
+        groupSize = Mathf.CeilToInt((float)total / (float)threadGroupSize); // Mathf.CeilToInt returns the smallest integer greater to or equal to f.
         int count = groupSize * (int)threadGroupSize; // count is the number of grass clumps that will be generated.
 
-        clumpsArray = new GrassClump[count]; // Create a new array of GrassClump.
+        clumpsArray = new GrassClump[count]; // Create a array of GrassClump struct,the number of struct is count.
 
         for(int i=0; i<count; i++)
         {
-            Vector3 pos = new Vector3(Random.Range(-clumps.x, clumps.x), 
+            Vector3 pos = new Vector3(Random.value * bounds.extents.x * 2 - bounds.extents.x + bounds.center.x,
                                       0,
-                                      Random.Range(-clumps.z, clumps.z)); 
+                                      Random.value * bounds.extents.z * 2 - bounds.extents.z + bounds.center.z); // Random.value returns a random number between 0.0 [inclusive] and 1.0 [inclusive] (Read Only).
+            pos = transform.TransformPoint(pos); // TransformPoint transforms a position from local space to world space.
             clumpsArray[i] = new GrassClump(pos); // Create a new GrassClump and store the pos in the array.
         }
 
@@ -97,7 +98,7 @@ public class GrassClump240102 : MonoBehaviour
         argsBuffer.SetData(argsArray); // SetData sets the values of the ComputeBuffer.
 
         material.SetBuffer("clumpsBuffer", clumpsBuffer); // SetBuffer sets a named compute buffer.
-        material.SetFloat("_scale", scale); // SetFloat sets a named float value.
+        material.SetFloat("_Scale", scale); // SetFloat sets a named float value.
     }
 
     // Update is called once per frame
