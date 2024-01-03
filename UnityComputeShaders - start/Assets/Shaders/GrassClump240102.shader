@@ -63,7 +63,7 @@
                 v.vertex.xyz *= _Scale;
                 float4 rotatedVertex = mul(_Matrix, float4(v.vertex.xyz, 1));
                 v.vertex.xyz += _Position;
-                v.vertex.xyz = lerpf(v.vertex.xyz, rotatedVertex.xyz,v.texcoord.y);
+                v.vertex.xyz = lerp(v.vertex.xyz, rotatedVertex.xyz,v.texcoord.y);
             #endif
         }
 

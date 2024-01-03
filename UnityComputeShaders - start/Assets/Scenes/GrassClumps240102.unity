@@ -197,13 +197,13 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 634673796}
-  m_LocalRotation: {x: 0.08715578, y: 0, z: 0, w: 0.9961947}
-  m_LocalPosition: {x: 0, y: 3.13, z: -8}
+  m_LocalRotation: {x: 0.21551189, y: -0, z: -0, w: 0.9765012}
+  m_LocalPosition: {x: 0, y: 1.46, z: -6.26}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 0}
   m_RootOrder: 0
-  m_LocalEulerAnglesHint: {x: 10, y: 0, z: 0}
+  m_LocalEulerAnglesHint: {x: 24.891, y: 0, z: 0}
 --- !u!1 &656956278
 GameObject:
   m_ObjectHideFlags: 0
@@ -331,7 +331,7 @@ MonoBehaviour:
   material: {fileID: 2100000, guid: d71ca0721e4ddd64e9f1557cdd99c05f, type: 2}
   shader: {fileID: 7200000, guid: d832db7312476c948ba672b706be79ec, type: 3}
   density: 0.8
-  scale: 0.2
+  scale: 2
   maxLean: 25
 --- !u!23 &2071463610
 MeshRenderer:

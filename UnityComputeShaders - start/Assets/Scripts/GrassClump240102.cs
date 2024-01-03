@@ -4,8 +4,6 @@ using UnityEngine;
 
 public class GrassClump240102 : MonoBehaviour
 {
-    // struct GrassClump that stores the position, lean, and noise of a grass clump.
-    // Q: Why use struct instead of class? A: https://stackoverflow.com/questions/372891/why-are-c-structs-so-seldom-used
     struct GrassClump
     {
         public Vector3 position;
@@ -18,12 +16,11 @@ public class GrassClump240102 : MonoBehaviour
             position.y = pos.y;
             position.z = pos.z;
             lean = 0;
-            noise = Random.Range(0.5f, 1); // Random.Range returns a random float number between and min [inclusive] and max [inclusive] (Read Only).
+            noise = Random.Range(0.5f, 1);
             if (Random.value < 0.5f) noise = -noise;    // use another random number to decide whether to make the noise negative.
         }
     }
 
-    // sizeof returns the size of a type in bytes.
     int SIZE_GRASS_CLUMP = 5 * sizeof(float); 
     public Mesh mesh;  // The mesh that will be drawn.
     public Material material;   // The material that will be used to render the mesh.
@@ -48,6 +45,9 @@ public class GrassClump240102 : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
+        // print out the path of shader to console for debugging.
+        Debug.Log("Compute Shader path: " + shader.name); // shader.name is the name of the shader.
+        
         bounds = new Bounds(Vector3.zero, new Vector3(30, 30, 30)); // Create a new Bounds object.
         InitShader();
     }
@@ -65,15 +65,13 @@ public class GrassClump240102 : MonoBehaviour
 
         int total = (int)(clumps.x) * (int)(clumps.z); // total is the total number of grass clumps.
 
+
+
         kernelLeanGrass = shader.FindKernel("LeanGrass"); // FindKernel returns the index of the kernel with the given name.
 
         uint threadGroupSize;  // The size of the group of threads in the compute shader.
         shader.GetKernelThreadGroupSizes(kernelLeanGrass, out threadGroupSize, out _, out _); // GetKernelThreadGroupSizes gets the thread group sizes of a compute shader kernel.
-        // the out keyword causes arguments to be passed by reference, in other words, write access.
-        // Q: 'out' in C# is like '&' in C++?  A: https://stackoverflow.com/questions/1516877/what-is-the-difference-between-the-ref-and-out-keywords
-        
         groupSize = Mathf.CeilToInt(total / (float)threadGroupSize); // Mathf.CeilToInt returns the smallest integer greater to or equal to f.
-
         int count = groupSize * (int)threadGroupSize; // count is the number of grass clumps that will be generated.
 
         clumpsArray = new GrassClump[count]; // Create a new array of GrassClump.
