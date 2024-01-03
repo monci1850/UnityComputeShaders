@@ -1,0 +1,29 @@
+﻿#define NUMTHREADS_X 128
+// Each #kernel tells which function to compile; you can have many kernels
+#pragma kernel LeanGrass
+
+// Create a struct here is to make it easier to pass in the data
+struct GrassClump
+{
+    float3 position;
+    float lean;
+    float noise;
+}
+
+// Create a RenderTexture with enableRandomWrite flag and set it
+// with cs.SetTexture
+//RWTexture2D<float4> Result;
+
+// Create a StructuredBuffer and set it with cs.SetBuffer
+RWStructuredBuffer<GrassClump> clumpsBuffer;
+float time;
+float maxLean;
+
+[numthreads(NUMTHREADS_X,1,1)]
+void LeanGrass (uint3 id : SV_DispatchThreadID)
+{
+
+    GrassClump clump = clumpsBuffer[id.x]; // id.x indicates the index of the clump in the buffer
+    clump.lean = sin(time + clump.noise) * maxLean*clump.noise;
+    clumpsBuffer[id.x] = clump;
+}
