@@ -1,0 +1,30 @@
+﻿// Each #kernel tells which function to compile; you can have many kernels
+#define NUMTHREADS_X 128
+#pragma kernel BendGrassBladesKernel
+
+#include "noiseSimplex.cginc" 
+
+struct BendGrassBlade
+{
+    float3 position;
+    float bend;
+    float noise;
+    float fade;
+}
+RWStructuredBuffer<BendGrassBlade> grassBladesBuffer;
+//RWBuffer<BendGrassBlade> grassBladesBuffer;
+
+float time;
+float maxBend; // in radians
+float4 wind; //Vector4(Mathf.Cos(theta), Mathf.Sin(theta), windSpeed, windStrength)
+
+[numthreads(NUMTHREADS_X,1,1)]
+void BendGrassBladesKernel (uint3 id : SV_DispatchThreadID)
+{
+    BendGrassBlade blade = grassBladesBuffer[id.x]; // use id.x only because we have 1D dispatch, y and z are 1 anyway. 
+    float2 offset = (blade.position.xz + wind.xy * time * wind.z) * wind.w;
+    float noise = perlin(offset.x, offset.y)*2-1; 
+    blade.bend = noise * maxBend * blade.noise;
+
+    grassBladesBuffer[id.x] = blade;
+}
