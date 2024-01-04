@@ -33,7 +33,7 @@
         float3 _Position;
 
         float4x4 create_matrix(float3 pos, float theta)
-        // Create a matrix that rotates the grass clump around the z-axis
+        // Create a matrix that rotates the grass clump around the z-axis, in other words, rotate in xy-plane
         {
             float c = cos(theta);
             float s = sin(theta);
@@ -60,9 +60,9 @@
             UNITY_INITIALIZE_OUTPUT(Input, data);
             
             #ifdef UNITY_PROCEDURAL_INSTANCING_ENABLED
-                v.vertex.xyz *= _Scale;
-                float4 rotatedVertex = mul(_Matrix, v.vertex);
-                v.vertex.xyz += _Position;
+                v.vertex.xyz *= _Scale; // scale the grass clump model
+                float4 rotatedVertex = mul(_Matrix, v.vertex); // rotate the grass clump around the z-axis in vertex shader
+                v.vertex.xyz += _Position; // move the grass clump to the position specified in the buffer
                 v.vertex = lerp(v.vertex, rotatedVertex,v.texcoord.y);
             #endif
         }
@@ -70,9 +70,9 @@
         void setup()
         {
             #ifdef UNITY_PROCEDURAL_INSTANCING_ENABLED
-                GrassClump clump = clumpsBuffer[unity_InstanceID];
-                _Position = clump.position;
-                _Matrix = create_matrix(clump.position, clump.lean);
+                GrassClump clump = clumpsBuffer[unity_InstanceID]; // grab the buffer from the GPU
+                _Position = clump.position; // set the position of the grass clump
+                _Matrix = create_matrix(clump.position, clump.lean); // set the rotation of the grass clump
             #endif
         }
 

@@ -10,7 +10,7 @@ struct BendGrassBlade
     float bend;
     float noise;
     float fade;
-}
+};
 RWStructuredBuffer<BendGrassBlade> grassBladesBuffer;
 //RWBuffer<BendGrassBlade> grassBladesBuffer;
 
@@ -23,7 +23,7 @@ void BendGrassBladesKernel (uint3 id : SV_DispatchThreadID)
 {
     BendGrassBlade blade = grassBladesBuffer[id.x]; // use id.x only because we have 1D dispatch, y and z are 1 anyway. 
     float2 offset = (blade.position.xz + wind.xy * time * wind.z) * wind.w;
-    float noise = perlin(offset.x, offset.y)*2-1; 
+    float noise = perlin(offset.x, offset.y)*2-1; // -1 to 1, to make sure it will bend both ways about the z-axis in local space
     blade.bend = noise * maxBend * blade.noise;
 
     grassBladesBuffer[id.x] = blade;

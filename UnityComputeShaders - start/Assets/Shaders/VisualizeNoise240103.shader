@@ -12,12 +12,12 @@
         Pass // Pass in terms of Shader means a draw call
         {
             CGPROGRAM
-            #pragma vertex vert
-            #pragma fragment frag
+            #pragma vertex vert // tells the GPU to use the vert function as the vertex shader
+            #pragma fragment frag // tells the GPU to use the frag function as the fragment shader
             
             #include "noiseSimplex.cginc" // to be able to use the perlin function
 
-            #include "UnityCG.cginc" // to be able to use the UnityObjectToClipPos function
+            #include "UnityCG.cginc" // to be able to use global time variables
 
             struct appdata // the struct that will be used to pass data from the CPU to the GPU
             {
@@ -44,7 +44,7 @@
             {
                 // offset the position by the wind
                 float2 offset = (i.position.xz + wind.xz * _Time.y * wind.z) * wind.w;  
-                float noise = perlin(offset.x, offset.y);
+                float noise = perlin(offset.x, offset.y); // 0 to 1
                 return fixed4(noise, noise, noise, 1);
             }
             ENDCG

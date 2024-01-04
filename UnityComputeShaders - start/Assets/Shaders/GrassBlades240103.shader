@@ -9,11 +9,13 @@
     }
     SubShader
     {
-        Tags { "RenderType"="Opaque" }
-        LOD 200
-        Cull off
-
+        Tags{ "RenderType"="Opaque" }
+        
+		LOD 200
+		Cull Off
+		
         CGPROGRAM
+        // Physically based Standard lighting model, and enable shadows on all light types   
         #pragma surface surf Standard vertex:vert addshadow fullforwardshadows
         #pragma instancing_options procedural:setup
 
@@ -32,9 +34,7 @@
         float4x4 _Matrix;
         float3 _Position;
 
-        float4x4 create_matrix(float3 pos, float theta)
-        // this function creates a matrix that rotates around the z-axis
-        {
+        float4x4 create_matrix(float3 pos, float theta){
             float c = cos(theta);
             float s = sin(theta);
             return float4x4(
@@ -44,7 +44,7 @@
                 0, 0, 0, 1
             );
         }
-
+        
         #ifdef UNITY_PROCEDURAL_INSTANCING_ENABLED
             struct GrassBlade
             {
@@ -52,13 +52,14 @@
                 float lean;
                 float noise;
                 float fade;
-            }        
-            UNITY_DECLARE_INSTANCE_BUFFER<GrassBlade> bladesBuffer; //replace StructuredBuffer with UNITY_DECLARE_INSTANCE_BUFFER macro
+            };
+            StructuredBuffer<GrassBlade> bladesBuffer; 
         #endif
 
         void vert(inout appdata_full v, out Input data)
         {
             UNITY_INITIALIZE_OUTPUT(Input, data);
+
             #ifdef UNITY_PROCEDURAL_INSTANCING_ENABLED
                 v.vertex.xyz *= _Scale;
                 float4 rotatedVertex = mul(_Matrix, v.vertex);
@@ -66,7 +67,7 @@
                 v.vertex = lerp(v.vertex, rotatedVertex, v.texcoord.y);
             #endif
         }
-        
+
         void setup()
         {
             #ifdef UNITY_PROCEDURAL_INSTANCING_ENABLED
@@ -76,11 +77,13 @@
                 _Fade = blade.fade;
             #endif
         }
-        void surf(Input IN, inout SurfaceOutputStandard o)
+
+        void surf (Input IN, inout SurfaceOutputStandard o)
         {
             // Albedo comes from a texture tinted by color
-            fixed4 c = tex2D(_MainTex, IN.uv_MainTex) * _Color * _Fade;
+            fixed4 c = tex2D (_MainTex, IN.uv_MainTex) * _Color * _Fade;
             o.Albedo = c.rgb;
+            // Metallic and smoothness come from slider variables
             o.Metallic = _Metallic;
             o.Smoothness = _Glossiness;
         }

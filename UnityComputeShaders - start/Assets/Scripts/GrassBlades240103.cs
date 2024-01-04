@@ -1,7 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.SocialPlatforms;
+//using UnityEngine.SocialPlatforms;
 
 public class GrassBlades240103 : MonoBehaviour
 {
@@ -14,7 +14,10 @@ public class GrassBlades240103 : MonoBehaviour
 
         public GrassBlade(Vector3 pos)
         {
-            position = pos;
+            //position = pos;
+            position.x = pos.x;
+            position.y = pos.y;
+            position.z = pos.z;
             bend = 0.0f;
             noise = Random.Range(0.5f, 1.0f) * 2.0f - 1.0f; // 0.0f ~ 1.0f
             fade = Random.Range(0.5f, 1.0f); // 0.5f ~ 1.0f
@@ -36,15 +39,15 @@ public class GrassBlades240103 : MonoBehaviour
     [Range(0,2)]
     public float windSpeed;
     [Range(0,360)]
-    public float windDirection;
+    public float windDirectionAngle;
     [Range(10,1000)]
-    public float windStrength; // wind scale
+    public float windPatternScale; // wind scale
 
     
     ComputeBuffer grassBladesBuffer;
-    ComputeBuffer argsBuffer;
-    GrassBlade[] grassBladesArray;
-    uint[] argsArray = new uint[5] { 0, 0, 0, 0, 0 };
+    ComputeBuffer argsBuffer; // for indirect draw
+    GrassBlade[] grassBladesArray; // for CPU data
+    uint[] argsArray = new uint[5] { 0, 0, 0, 0, 0 }; // for indirect draw
     Bounds bounds;
     int timeID;
     int groupSize;
@@ -52,7 +55,7 @@ public class GrassBlades240103 : MonoBehaviour
     Mesh grassBladeMesh;
     Material groundMaterial;
     
-    Mesh BladeMeshData
+    Mesh BladeMeshData // Defining a mesh in code
     {
         get
         { 
@@ -63,7 +66,7 @@ public class GrassBlades240103 : MonoBehaviour
             }
             else
             {
-                mesh = new Mesh();
+                mesh = new Mesh();  // create a new mesh, no vertex data yet
                 float height = 0.2f;
                 float rowHeight = height / 4; // each segment height
                 float halfWidth = height / 10; // half width of the blade at the bottom
@@ -82,7 +85,8 @@ public class GrassBlades240103 : MonoBehaviour
                     new Vector3( halfWidth*0.8f, rowHeight * 3, 0),
                     new Vector3(-halfWidth, height, 0)
                 };
-                Vector3 normal = new Vector3(0, 0, -1);
+
+                Vector3 normal = new Vector3(0, 0, -1); // tpwards the non-rotated camera
                 Vector3[] normals = 
                 {
                     normal,
@@ -95,6 +99,7 @@ public class GrassBlades240103 : MonoBehaviour
                     normal,
                     normal
                 };
+                
                 Vector2[] uvs = 
                 {
                     new Vector2(0,0),
@@ -109,6 +114,8 @@ public class GrassBlades240103 : MonoBehaviour
                 };
                 int[] indices =
                 {
+                    // both in CCW order to be able to see the front face and sew the seam
+                    // Unity CCW order is forward facing
                     0,1,2,1,3,2,//row 1
                     2,3,4,3,5,4,//row 2
                     4,5,6,5,7,6,//row 3
@@ -118,7 +125,7 @@ public class GrassBlades240103 : MonoBehaviour
                 mesh.vertices = vertices;
                 mesh.normals = normals;
                 mesh.uv = uvs;
-                mesh.SetIndices(indices, MeshTopology.Triangles, 0);
+                mesh.SetIndices(indices, MeshTopology.Triangles, 0); // 0 is the order of submeshes. 
             }
             return mesh;
         }
@@ -135,6 +142,13 @@ public class GrassBlades240103 : MonoBehaviour
         groundMaterial = renderer.material;
 
         InitShader();
+
+        // print out the material name that applied to the mesh for debugging which holds this script
+        // get the mesh and print out its material name
+        Debug.Log("mesh material name: " + GetComponent<MeshRenderer>().material.name);
+
+
+        
     }
 
     private void OnValidate() // OnValidate is called when the script is loaded or a value is changed in the inspector (Called in the editor only) 
@@ -144,11 +158,12 @@ public class GrassBlades240103 : MonoBehaviour
             MeshRenderer renderer = GetComponent<MeshRenderer>();
             renderer.material = (viewNoise) ? visualizeNoiseMaterial : grassMaterial;
 
-            float theta = windDirection * Mathf.PI / 180.0f; // to radian
-            Vector4 wind = new Vector4(Mathf.Cos(theta), Mathf.Sin(theta), windSpeed, windStrength);
-            computeShader.SetVector("wind", wind);
-            visualizeNoiseMaterial.SetVector("wind", wind);
+            float theta = windDirectionAngle * Mathf.PI / 180.0f; // to radian
+            Vector4 wind = new Vector4(Mathf.Cos(theta), Mathf.Sin(theta), windSpeed, windPatternScale); // x is cos(theta), y is sin(theta).x and y are the direction of the wind, z is the speed, w is the strength
+            computeShader.SetVector("wind", wind); // pass the wind to the compute shader
+            visualizeNoiseMaterial.SetVector("wind", wind); // pass the wind to the visualizeNoiseMaterial
         }
+
     }
     void InitShader()
     {
@@ -160,6 +175,8 @@ public class GrassBlades240103 : MonoBehaviour
         blades.x *= vec.x;
         blades.y *= vec.y;
 
+        // print out blades.x, blades.y, blades.z for debugging
+        Debug.Log("blades.x: " + blades.x + " blades.y: " + blades.y + " blades.z: " + blades.z);
         int total = (int)(blades.x * blades.z) * 20;
 
         kernelBendGrass = computeShader.FindKernel("BendGrassBladesKernel");
@@ -167,6 +184,8 @@ public class GrassBlades240103 : MonoBehaviour
         uint threadGroupSizeX;
         computeShader.GetKernelThreadGroupSizes(kernelBendGrass, out threadGroupSizeX, out _, out _);
         groupSize = Mathf.CeilToInt((float)total / (float)threadGroupSizeX);
+        // print out groupSize and threadGroupSizeX for debugging
+        Debug.Log("groupSize: " + groupSize + " threadGroupSizeX: " + threadGroupSizeX);
         int count = groupSize * (int)threadGroupSizeX;
 
         grassBladesArray = new GrassBlade[count];
@@ -181,13 +200,16 @@ public class GrassBlades240103 : MonoBehaviour
             grassBladesArray[i] = new GrassBlade(pos);
         }
 
+        // print out count and SIZE_GRASS_BLADE for debugging
+        Debug.Log("count: " + count + " SIZE_GRASS_BLADE: " + SIZE_GRASS_BLADE);
+
         grassBladesBuffer = new ComputeBuffer(count, SIZE_GRASS_BLADE);
         grassBladesBuffer.SetData(grassBladesArray);
 
         computeShader.SetBuffer(kernelBendGrass, "grassBladesBuffer", grassBladesBuffer);
         computeShader.SetFloat("maxBend", maxBend * Mathf.PI / 180.0f); 
-        float theta = windDirection * Mathf.PI / 180.0f; // to radian
-        Vector4 wind = new Vector4(Mathf.Cos(theta), Mathf.Sin(theta), windSpeed, windStrength);
+        float theta = windDirectionAngle * Mathf.PI / 180.0f; // to radian
+        Vector4 wind = new Vector4(Mathf.Cos(theta), Mathf.Sin(theta), windSpeed, windPatternScale);
         computeShader.SetVector("wind", wind);
         timeID = Shader.PropertyToID("time");
 
@@ -204,7 +226,12 @@ public class GrassBlades240103 : MonoBehaviour
     void Update()
     {
         computeShader.SetFloat(timeID, Time.time);
-        computeShader.Dispatch(kernelBendGrass, groupSize, 1, 1);        
+        computeShader.Dispatch(kernelBendGrass, groupSize, 1, 1);  
+
+        if (!viewNoise)
+        {
+            Graphics.DrawMeshInstancedIndirect(grassBladeMesh, 0, grassMaterial, bounds, argsBuffer);
+        }      
     }
 
     private void OnDestroy()
