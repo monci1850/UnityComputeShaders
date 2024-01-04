@@ -69,7 +69,7 @@ public class GrassBlades240103 : MonoBehaviour
                 mesh = new Mesh();  // create a new mesh, no vertex data yet
                 float height = 0.2f;
                 float rowHeight = height / 4; // each segment height
-                float halfWidth = height / 10; // half width of the blade at the bottom
+                float halfWidth = height / 30; // half width of the blade at the bottom
 
                 // TODO: use individual parameters to control the shape of the blade: height, rowHeight, halfWidth
 
@@ -83,7 +83,7 @@ public class GrassBlades240103 : MonoBehaviour
                     new Vector3( halfWidth*0.9f, rowHeight * 2, 0),
                     new Vector3(-halfWidth*0.8f, rowHeight * 3, 0),
                     new Vector3( halfWidth*0.8f, rowHeight * 3, 0),
-                    new Vector3(-halfWidth, height, 0)
+                    new Vector3(0, rowHeight * 4, 0)
                 };
 
                 Vector3 normal = new Vector3(0, 0, -1); // tpwards the non-rotated camera
@@ -145,7 +145,7 @@ public class GrassBlades240103 : MonoBehaviour
 
         // print out the material name that applied to the mesh for debugging which holds this script
         // get the mesh and print out its material name
-        Debug.Log("mesh material name: " + GetComponent<MeshRenderer>().material.name);
+        //Debug.Log("mesh material name: " + GetComponent<MeshRenderer>().material.name);
 
 
         
@@ -173,11 +173,13 @@ public class GrassBlades240103 : MonoBehaviour
         Vector3 blades = bounds.extents;
         Vector3 vec = transform.localScale / 0.1f * density;
         blades.x *= vec.x;
-        blades.y *= vec.y;
+        blades.z *= vec.z;
 
         // print out blades.x, blades.y, blades.z for debugging
-        Debug.Log("blades.x: " + blades.x + " blades.y: " + blades.y + " blades.z: " + blades.z);
+        // Debug.Log("blades.x: " + blades.x + " blades.y: " + blades.y + " blades.z: " + blades.z);
         int total = (int)(blades.x * blades.z) * 20;
+        // print out total for debugging
+        Debug.Log("total: " + total);
 
         kernelBendGrass = computeShader.FindKernel("BendGrassBladesKernel");
 
@@ -185,7 +187,7 @@ public class GrassBlades240103 : MonoBehaviour
         computeShader.GetKernelThreadGroupSizes(kernelBendGrass, out threadGroupSizeX, out _, out _);
         groupSize = Mathf.CeilToInt((float)total / (float)threadGroupSizeX);
         // print out groupSize and threadGroupSizeX for debugging
-        Debug.Log("groupSize: " + groupSize + " threadGroupSizeX: " + threadGroupSizeX);
+        //Debug.Log("groupSize: " + groupSize + " threadGroupSizeX: " + threadGroupSizeX);
         int count = groupSize * (int)threadGroupSizeX;
 
         grassBladesArray = new GrassBlade[count];
@@ -197,15 +199,19 @@ public class GrassBlades240103 : MonoBehaviour
                                       0,
                                       Random.value * bounds.extents.z * 2 - bounds.extents.z + bounds.center.z);
             pos = transform.TransformPoint(pos);
+            // print out the position of each grass blade for debugging
+            //Debug.Log("grassBlade[" + i + "]: " + pos);
             grassBladesArray[i] = new GrassBlade(pos);
         }
+        // print out the grassBladesArray for debugging
+        //Debug.Log("grassBladesArray: " + grassBladesArray);
 
         // print out count and SIZE_GRASS_BLADE for debugging
-        Debug.Log("count: " + count + " SIZE_GRASS_BLADE: " + SIZE_GRASS_BLADE);
+        //Debug.Log("count: " + count + " SIZE_GRASS_BLADE: " + SIZE_GRASS_BLADE);
 
+        // send the data to the compute shader
         grassBladesBuffer = new ComputeBuffer(count, SIZE_GRASS_BLADE);
         grassBladesBuffer.SetData(grassBladesArray);
-
         computeShader.SetBuffer(kernelBendGrass, "grassBladesBuffer", grassBladesBuffer);
         computeShader.SetFloat("maxBend", maxBend * Mathf.PI / 180.0f); 
         float theta = windDirectionAngle * Mathf.PI / 180.0f; // to radian

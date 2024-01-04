@@ -63,7 +63,7 @@
                 v.vertex.xyz *= _Scale; // scale the grass clump model
                 float4 rotatedVertex = mul(_Matrix, v.vertex); // rotate the grass clump around the z-axis in vertex shader
                 v.vertex.xyz += _Position; // move the grass clump to the position specified in the buffer
-                v.vertex = lerp(v.vertex, rotatedVertex,v.texcoord.y);
+                v.vertex = lerp(v.vertex, rotatedVertex, v.texcoord.y); // use uv.y to lerp between the rotated and unrotated vertex
             #endif
         }
 

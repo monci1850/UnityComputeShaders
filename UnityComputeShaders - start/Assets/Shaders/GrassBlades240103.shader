@@ -53,7 +53,8 @@
                 float noise;
                 float fade;
             };
-            StructuredBuffer<GrassBlade> bladesBuffer; 
+
+            StructuredBuffer<GrassBlade> grassBladesBuffer; // This is the buffer we have created in the C# script
         #endif
 
         void vert(inout appdata_full v, out Input data)
@@ -71,7 +72,7 @@
         void setup()
         {
             #ifdef UNITY_PROCEDURAL_INSTANCING_ENABLED
-                GrassBlade blade = bladesBuffer[unity_InstanceID];
+                GrassBlade blade = grassBladesBuffer[unity_InstanceID]; // Grab the blade struct data from the buffer that sent from the C# script
                 _Matrix = create_matrix(blade.position, blade.lean);
                 _Position = blade.position;
                 _Fade = blade.fade;
